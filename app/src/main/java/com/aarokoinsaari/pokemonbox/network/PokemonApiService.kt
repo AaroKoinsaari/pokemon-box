@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2024 Aaro Koinsaari. All rights reserved.
+ */
+
 package com.aarokoinsaari.pokemonbox.network
 
 import me.sargunvohra.lib.pokekotlin.model.Pokemon
