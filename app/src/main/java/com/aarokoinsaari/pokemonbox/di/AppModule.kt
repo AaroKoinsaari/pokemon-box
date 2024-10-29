@@ -1,5 +1,8 @@
 package com.aarokoinsaari.pokemonbox.di
 
+import com.aarokoinsaari.pokemonbox.network.PokemonApiService
+import com.aarokoinsaari.pokemonbox.repository.PokemonRepository
+import me.sargunvohra.lib.pokekotlin.client.PokeApiClient
 import okhttp3.OkHttpClient
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -22,4 +25,11 @@ val appModule = module {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    single { PokeApiClient() }
+
+    single<PokemonApiService> {
+        get<Retrofit>().create(PokemonApiService::class.java)
+    }
+    single { PokemonRepository(get(), get()) }
 }
