@@ -4,10 +4,14 @@
 
 package com.aarokoinsaari.pokemonbox.di
 
+import androidx.room.Room
+import com.aarokoinsaari.pokemonbox.data.local.PokemonDatabase
 import com.aarokoinsaari.pokemonbox.network.PokemonApiService
 import com.aarokoinsaari.pokemonbox.repository.PokemonRepository
+import com.aarokoinsaari.pokemonbox.viewmodel.PokemonListViewModel
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient
 import okhttp3.OkHttpClient
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -32,8 +36,18 @@ val appModule = module {
 
     single { PokeApiClient() }
 
-    single<PokemonApiService> {
-        get<Retrofit>().create(PokemonApiService::class.java)
+    single<PokemonApiService> { get<Retrofit>().create(PokemonApiService::class.java) }
+
+    single {
+        Room.inMemoryDatabaseBuilder(
+            get(),
+            PokemonDatabase::class.java,
+        ).build()
     }
+
+    single { get<PokemonDatabase>().pokemonDao() }
+
     single { PokemonRepository(get(), get()) }
+
+    viewModel { PokemonListViewModel(get()) }
 }
