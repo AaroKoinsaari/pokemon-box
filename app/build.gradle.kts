@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.ksp)
     id("io.gitlab.arturbosch.detekt").version("1.23.6")
 }
 
@@ -61,6 +62,10 @@ dependencies {
     implementation(libs.pokekotlin)
     implementation(libs.retrofit)
     implementation(libs.okhttp)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }
 
 detekt {
