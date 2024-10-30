@@ -4,7 +4,7 @@
 
 package com.aarokoinsaari.pokemonbox.state
 
-import me.sargunvohra.lib.pokekotlin.model.Pokemon
+import com.aarokoinsaari.pokemonbox.model.Pokemon
 
 data class PokemonListState(
     val pokemons: List<Pokemon> = emptyList(),
