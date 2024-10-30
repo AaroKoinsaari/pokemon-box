@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("io.gitlab.arturbosch.detekt").version("1.23.6")
 }
 
 android {
@@ -60,4 +61,19 @@ dependencies {
     implementation(libs.pokekotlin)
     implementation(libs.retrofit)
     implementation(libs.okhttp)
+}
+
+detekt {
+    toolVersion = "1.23.6"
+    buildUponDefaultConfig = true
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "11"
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().all {
+    kotlinOptions {
+        jvmTarget = "11"
+    }
 }
