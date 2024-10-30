@@ -8,5 +8,6 @@ import me.sargunvohra.lib.pokekotlin.model.Pokemon
 
 data class PokemonListState(
     val pokemons: List<Pokemon> = emptyList(),
+    val query: String = "",
     val isLoading: Boolean = false
 )

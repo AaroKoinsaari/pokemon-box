@@ -8,4 +8,5 @@ sealed class PokemonListIntent {
     object LoadInitial : PokemonListIntent()
     object LoadNextPage : PokemonListIntent()
     data class UpdateQuery(val query: String) : PokemonListIntent()
+    data class Search(val query: String) : PokemonListIntent()
 }

@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Pokemon Box</string>
+    <string name="search_placeholder">Search name or type</string>
 </resources>
