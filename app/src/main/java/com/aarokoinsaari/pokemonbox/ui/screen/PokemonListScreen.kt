@@ -4,7 +4,6 @@
 
 package com.aarokoinsaari.pokemonbox.ui.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,13 +14,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -40,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import com.aarokoinsaari.pokemonbox.R
 import com.aarokoinsaari.pokemonbox.intent.PokemonListIntent
 import com.aarokoinsaari.pokemonbox.model.Pokemon
@@ -61,7 +62,11 @@ fun PokemonListScreen(
     ) {
         val state = stateFlow.collectAsState()
 
-        Column(Modifier.fillMaxHeight()) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .statusBarsPadding()
+        ) {
             OutlinedTextField(
                 value = state.value.query,
                 onValueChange = { onIntent(PokemonListIntent.UpdateQuery(it)) },
@@ -78,16 +83,17 @@ fun PokemonListScreen(
                         contentDescription = null // TODO
                     )
                 },
+                singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
+                    .heightIn(max = 60.dp)
             )
 
             PokemonList(
                 pokemons = state.value.pokemons,
                 isLoading = state.value.isLoading,
-                onIntent = onIntent,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -99,7 +105,6 @@ fun PokemonList(
     pokemons: List<Pokemon>,
     isLoading: Boolean,
     modifier: Modifier = Modifier,
-    onIntent: (PokemonListIntent) -> Unit = { }
 ) {
     Box(modifier) {
         LazyColumn(Modifier.fillMaxSize()) {
@@ -125,16 +130,17 @@ fun PokemonList(
 @Composable
 fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
     Row(modifier = modifier) {
-        // Image
-        Image(
-            imageVector = pokemon.image ?: Icons.Default.Refresh, // TODO: Change fallback image
+        // Pokemon image
+        AsyncImage(
+            model = pokemon.imageUrl,
             contentDescription = pokemon.name,
-            alignment = Alignment.Center,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxHeight()
-                .width(100.dp)
+                .align(Alignment.CenterVertically)
+                .width(84.dp)
         )
+
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.Start,
@@ -167,7 +173,7 @@ fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
             }
             // Description
             Text(
-                text = pokemon.description ?: "",
+                text = pokemon.description?.replaceFirstChar { it.uppercase() } ?: "",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -179,7 +185,7 @@ fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
 fun PokemonTypeLabel(type: String, modifier: Modifier = Modifier) {
     Text(
         text = type.replaceFirstChar { it.uppercase() },
-        color = Color.Gray, // TODO: Use MaterialTheme when defined
+        color = Color.Gray, // TODO: Use MaterialTheme when adjusted
         style = MaterialTheme.typography.bodySmall,
         fontWeight = FontWeight.SemiBold,
         modifier = modifier
@@ -193,7 +199,8 @@ private fun PokemonListScreen_Preview() {
         id = 1,
         name = "bulbasaur",
         types = listOf("Electric", "Water"),
-        description = "Can float on water"
+        description = "Can float on water",
+        imageUrl = null
     )
     PokemonBoxTheme {
         PokemonListScreen(
@@ -206,14 +213,15 @@ private fun PokemonListScreen_Preview() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun PokemonListItem_Preview() {
     val pokemon = Pokemon(
         id = 1,
         name = "bulbasaur",
         types = listOf("Electric", "Water"),
-        description = "Can float on water"
+        description = "Can float on water",
+        imageUrl = null
     )
     PokemonBoxTheme {
         PokemonListItem(pokemon)
