@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.aarokoinsaari.pokemonbox"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.aarokoinsaari.pokemonbox"
         minSdk = 34
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -66,6 +66,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
 }
 
 detekt {

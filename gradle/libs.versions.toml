@@ -2,15 +2,16 @@
 agp = "8.7.1"
 coilCompose = "3.0.0-rc02"
 kotlin = "2.0.0"
-coreKtx = "1.13.1"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.6"
+lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.9.3"
-composeBom = "2024.10.00"
+composeBom = "2024.10.01"
 koinAndroid = "4.0.0"
 okhttp = "4.12.0"
+pagingRuntimeKtx = "3.3.2"
 pokekotlin = "2.3.1"
 retrofit = "2.11.0"
 ksp = "2.0.21-1.0.25"
@@ -18,6 +19,8 @@ roomKtx = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "pagingRuntimeKtx" }
+androidx-paging-runtime-ktx = { module = "androidx.paging:paging-runtime-ktx", version.ref = "pagingRuntimeKtx" }
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomKtx" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
