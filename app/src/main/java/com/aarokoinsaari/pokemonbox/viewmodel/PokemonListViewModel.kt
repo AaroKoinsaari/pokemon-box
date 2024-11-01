@@ -4,7 +4,6 @@
 
 package com.aarokoinsaari.pokemonbox.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aarokoinsaari.pokemonbox.intent.PokemonListIntent
@@ -32,7 +31,7 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
     }
 
     fun handleIntent(intent: PokemonListIntent) {
-        Log.d("PokemonListViewModel", "handleIntent: $intent")
+//        Log.d("PokemonListViewModel", "handleIntent: $intent")
         when (intent) {
             is PokemonListIntent.LoadInitial -> {
                 currentOffset = 0
@@ -58,12 +57,12 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
                 val pokemons = getPokemonsWithDetails(limit = limit, offset = currentOffset)
                 _state.update { currentState ->
                     val currentList = if (reset) pokemons else currentState.pokemons + pokemons
-                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons: $currentList")
+//                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons: $currentList")
                     currentState.copy(pokemons = currentList, isLoading = false)
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
-                Log.d("PokemonListViewModel", "Error loading pokemons: ${e.message}")
+//                Log.d("PokemonListViewModel", "Error loading pokemons: ${e.message}")
             }
         }
     }
@@ -87,10 +86,10 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
                         isLoading = false
                     )
                 }
-                Log.d("PokemonListViewModel", "searchPokemons, current pokemons: $pokemon")
+//                Log.d("PokemonListViewModel", "searchPokemons, current pokemons: $pokemon")
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
-                Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
+//                Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
             }
         }
     }
@@ -111,9 +110,9 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
             response.results.map { basicInfo ->
                 async {
                     val detailResponse = apiService.getPokemonDetail(basicInfo.name)
-                    Log.d("PokemonListViewModel", "getPokemonsWithDetails, pokemon: $detailResponse")
+//                    Log.d("PokemonListViewModel", "getPokemonsWithDetails, pokemon: $detailResponse")
                     val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
-                    Log.d("PokemonListViewModel", "getPokemonsWithDetails, species: $speciesResponse")
+//                    Log.d("PokemonListViewModel", "getPokemonsWithDetails, species: $speciesResponse")
                     detailResponse.toPokemon(speciesResponse)
                 }
             }.awaitAll()
