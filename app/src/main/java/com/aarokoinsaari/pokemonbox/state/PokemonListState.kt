@@ -8,6 +8,7 @@ import com.aarokoinsaari.pokemonbox.model.Pokemon
 
 data class PokemonListState(
     val pokemons: List<Pokemon> = emptyList(),
+    val filteredPokemons: List<Pokemon> = emptyList(),
     val query: String = "",
     val isLoading: Boolean = false
 )

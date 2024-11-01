@@ -43,7 +43,7 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
             }
             is PokemonListIntent.UpdateQuery -> {
                 _state.value = _state.value.copy(query = intent.query)
-                searchPokemons(intent.query)
+                filterPokemons(intent.query)
             }
             is PokemonListIntent.Search -> searchPokemons(intent.query)
         }
@@ -80,6 +80,15 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
                 Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
             }
         }
+    }
+
+    private fun filterPokemons(query: String) {
+        val filteredList = if (query.isEmpty()) {
+            _state.value.pokemons
+        } else {
+            _state.value.pokemons.filter { it.name.contains(query, ignoreCase = true) }
+        }
+        _state.value = _state.value.copy(filteredPokemons = filteredList)
     }
 
     suspend fun getPokemonsWithDetails(limit: Int, offset: Int): List<Pokemon> {

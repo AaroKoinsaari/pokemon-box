@@ -92,8 +92,15 @@ fun PokemonListScreen(
                     .heightIn(max = 60.dp)
             )
 
+            // Choose between displaying all pokemons or the filtered ones
+            val displayedPokemons = if (state.value.query.isEmpty()) {
+                state.value.pokemons
+            } else {
+                state.value.filteredPokemons
+            }
+
             PokemonList(
-                pokemons = state.value.pokemons,
+                pokemons = displayedPokemons,
                 isLoading = state.value.isLoading,
                 modifier = Modifier.weight(1f)
             )
