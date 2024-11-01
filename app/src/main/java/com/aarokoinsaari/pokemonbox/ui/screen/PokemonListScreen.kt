@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -86,21 +89,27 @@ fun PokemonListScreen(
                 },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        onIntent(PokemonListIntent.Search(state.value.query))
+                    }
+                ),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp)
                     .heightIn(max = 60.dp)
             )
 
-            // Choose between displaying all pokemons or the filtered ones
-            val displayedPokemons = if (state.value.query.isEmpty()) {
-                state.value.pokemons
-            } else {
-                state.value.filteredPokemons
-            }
-
             PokemonList(
-                pokemons = displayedPokemons,
+                // Choose between displaying all pokemons or the filtered one
+                pokemons = if (state.value.query.isEmpty()) {
+                    state.value.pokemons
+                } else {
+                    state.value.filteredPokemons
+                },
                 isLoading = state.value.isLoading,
                 modifier = Modifier.weight(1f)
             )

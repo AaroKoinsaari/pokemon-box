@@ -73,7 +73,15 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
                 val detailResponse = apiService.getPokemonDetail(query)
                 val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
                 val pokemon = detailResponse.toPokemon(speciesResponse)
-                _state.value = _state.value.copy(pokemons = listOf(pokemon), isLoading = false)
+                _state.value = _state.value.copy(
+                    // Add pokemon to the original list as well if it doesn't exist yet
+                    pokemons = if (_state.value.pokemons.any { it.id == pokemon.id }) {
+                        _state.value.pokemons
+                    } else {
+                        _state.value.pokemons + pokemon
+                    },
+                    filteredPokemons = listOf(pokemon), isLoading = false
+                )
                 Log.d("PokemonListViewModel", "searchPokemons, current pokemons: $pokemon")
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false)
