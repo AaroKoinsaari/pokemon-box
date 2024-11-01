@@ -5,10 +5,10 @@
 package com.aarokoinsaari.pokemonbox.network
 
 data class PokemonListResponse(
-    val results: List<PokemonResult>
+    val results: List<PokemonBasicInfo>
 )
 
-data class PokemonResult(
+data class PokemonBasicInfo(
     val name: String,
     val url: String
 )

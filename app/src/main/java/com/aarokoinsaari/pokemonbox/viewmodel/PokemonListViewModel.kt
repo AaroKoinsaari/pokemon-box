@@ -8,16 +8,21 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aarokoinsaari.pokemonbox.intent.PokemonListIntent
-import com.aarokoinsaari.pokemonbox.repository.PokemonRepository
+import com.aarokoinsaari.pokemonbox.model.Pokemon
+import com.aarokoinsaari.pokemonbox.model.toPokemon
+import com.aarokoinsaari.pokemonbox.network.PokemonApiService
 import com.aarokoinsaari.pokemonbox.state.PokemonListState
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class PokemonListViewModel(private val repository: PokemonRepository) : ViewModel() {
+class PokemonListViewModel(private val apiService: PokemonApiService) : ViewModel() {
     private val _state = MutableStateFlow(PokemonListState())
     val state: StateFlow<PokemonListState> = _state
-    private val pageSize = 20
+    private val limit = 20
     private var currentOffset = 0
 
     // Load first pokemons when initialized
@@ -33,7 +38,7 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
                 loadPokemons(reset = true)
             }
             is PokemonListIntent.LoadNextPage -> {
-                currentOffset += pageSize
+                currentOffset += limit
                 loadPokemons()
             }
             is PokemonListIntent.UpdateQuery -> {
@@ -49,7 +54,7 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
-                val pokemons = repository.getPokemonList(limit = pageSize, offset = currentOffset)
+                val pokemons = getPokemonsWithDetails(limit = limit, offset = currentOffset)
                 val currentList = if (reset) pokemons else _state.value.pokemons + pokemons
                 _state.value = _state.value.copy(pokemons = currentList, isLoading = false)
                 Log.d("PokemonListViewModel", "loadPokemons, current pokemons: $currentList")
@@ -65,13 +70,31 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
-                val pokemons = repository.getPokemonByName(query)
-                Log.d("PokemonListViewModel", "searchPokemons, pokemons: $pokemons")
-                _state.value = _state.value.copy(pokemons = pokemons, isLoading = false)
+                val detailResponse = apiService.getPokemonDetail(query)
+                val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
+                val pokemon = detailResponse.toPokemon(speciesResponse)
+                _state.value = _state.value.copy(pokemons = listOf(pokemon), isLoading = false)
+                Log.d("PokemonListViewModel", "searchPokemons, current pokemons: $pokemon")
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false)
                 Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
             }
+        }
+    }
+
+    suspend fun getPokemonsWithDetails(limit: Int, offset: Int): List<Pokemon> {
+        val response = apiService.getPokemonList(limit, offset)
+
+        return coroutineScope {
+            response.results.map { basicInfo ->
+                async {
+                    val detailResponse = apiService.getPokemonDetail(basicInfo.name)
+                    Log.d("PokemonListViewModel", "getPokemonsWithDetails, pokemon: $detailResponse")
+                    val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
+                    Log.d("PokemonListViewModel", "getPokemonsWithDetails, species: $speciesResponse")
+                    detailResponse.toPokemon(speciesResponse)
+                }
+            }.awaitAll()
         }
     }
 }

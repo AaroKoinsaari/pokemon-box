@@ -4,37 +4,28 @@
 
 package com.aarokoinsaari.pokemonbox.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import androidx.room.TypeConverter
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.aarokoinsaari.pokemonbox.network.PokemonDetailResponse
+import com.aarokoinsaari.pokemonbox.network.PokemonSpeciesResponse
 
-@Entity(tableName = "pokemons")
 data class Pokemon(
-    @PrimaryKey val id: Int,
-    @ColumnInfo(name = "name") val name: String,
-    @ColumnInfo(name = "image_url") val imageUrl: String?,
-    @ColumnInfo(name = "types") val types: List<String>?,
-    @ColumnInfo(name = "description") val description: String?
+    val id: Int,
+    val name: String,
+    val imageUrl: String?,
+    val types: List<String>?,
+    val description: String?
 )
 
-/**
- * This is used mostly for handling the conversion with types property as Room cannot handle
- * complex data types like List.
- */
-class Converters {
-    private val gson = Gson()
+fun PokemonDetailResponse.toPokemon(speciesResponse: PokemonSpeciesResponse): Pokemon {
+    val description = speciesResponse.flavorTextEntries
+        .firstOrNull { it.language.name == "en" }
+        ?.flavorText
+        ?.replace("\n", " ")
 
-    @TypeConverter
-    fun fromStringList(value: List<String>?): String? =
-        gson.toJson(value)
-
-    @TypeConverter
-    fun toStringList(value: String?): List<String>? =
-        value?.let {
-            val listType = object : TypeToken<List<String>>() {}.type
-            gson.fromJson(it, listType)
-        }
+    return Pokemon(
+        id = this.id,
+        name = this.name,
+        imageUrl = this.sprites.frontDefault,
+        types = this.types.map { it.type.name },
+        description = description
+    )
 }
