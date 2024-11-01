@@ -33,6 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -88,38 +89,11 @@ fun PokemonListScreen(
                 .fillMaxHeight()
                 .statusBarsPadding()
         ) {
-            OutlinedTextField(
-                value = state.value.query,
-                onValueChange = { onIntent(PokemonListIntent.UpdateQuery(it)) },
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.search_placeholder),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                        contentDescription = null // TODO
-                    )
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        onIntent(PokemonListIntent.Search(state.value.query))
-                    }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .heightIn(max = 60.dp)
+            SearchTextField(
+                query = state.value.query,
+                onQueryChange = { onIntent(PokemonListIntent.UpdateQuery(it)) },
+                onSearch = { onIntent(PokemonListIntent.Search(state.value.query)) }
             )
-
             PokemonList(
                 // Choose between displaying all pokemons or the filtered one
                 pokemons = if (state.value.query.isEmpty()) {
@@ -133,6 +107,49 @@ fun PokemonListScreen(
             )
         }
     }
+}
+
+@Composable
+fun SearchTextField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        placeholder = {
+            Text(
+                text = stringResource(R.string.search_placeholder),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Default.Search,
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                contentDescription = stringResource(id = R.string.search_icon_content_desc)
+            )
+        },
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            disabledContainerColor = MaterialTheme.colorScheme.secondary,
+            focusedContainerColor = MaterialTheme.colorScheme.secondary,
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
+            cursorColor = MaterialTheme.colorScheme.onSurface,
+        ),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(
+            onDone = { onSearch() }
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .heightIn(max = 60.dp)
+    )
 }
 
 @Composable
