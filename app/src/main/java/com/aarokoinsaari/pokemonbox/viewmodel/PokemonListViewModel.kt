@@ -17,6 +17,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class PokemonListViewModel(private val apiService: PokemonApiService) : ViewModel() {
@@ -42,7 +43,7 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
                 loadPokemons()
             }
             is PokemonListIntent.UpdateQuery -> {
-                _state.value = _state.value.copy(query = intent.query)
+                _state.update { it.copy(query = intent.query) }
                 filterPokemons(intent.query)
             }
             is PokemonListIntent.Search -> searchPokemons(intent.query)
@@ -52,14 +53,16 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
     @Suppress("TooGenericExceptionCaught")
     private fun loadPokemons(reset: Boolean = false) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
             try {
                 val pokemons = getPokemonsWithDetails(limit = limit, offset = currentOffset)
-                val currentList = if (reset) pokemons else _state.value.pokemons + pokemons
-                _state.value = _state.value.copy(pokemons = currentList, isLoading = false)
-                Log.d("PokemonListViewModel", "loadPokemons, current pokemons: $currentList")
+                _state.update { currentState ->
+                    val currentList = if (reset) pokemons else currentState.pokemons + pokemons
+                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons: $currentList")
+                    currentState.copy(pokemons = currentList, isLoading = false)
+                }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false)
+                _state.update { it.copy(isLoading = false) }
                 Log.d("PokemonListViewModel", "Error loading pokemons: ${e.message}")
             }
         }
@@ -68,23 +71,25 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
     @Suppress("TooGenericExceptionCaught")
     private fun searchPokemons(query: String) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.update { it.copy(isLoading = true) }
             try {
                 val detailResponse = apiService.getPokemonDetail(query)
                 val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
                 val pokemon = detailResponse.toPokemon(speciesResponse)
-                _state.value = _state.value.copy(
-                    // Add pokemon to the original list as well if it doesn't exist yet
-                    pokemons = if (_state.value.pokemons.any { it.id == pokemon.id }) {
-                        _state.value.pokemons
-                    } else {
-                        _state.value.pokemons + pokemon
-                    },
-                    filteredPokemons = listOf(pokemon), isLoading = false
-                )
+                _state.update { currentState ->
+                    currentState.copy( // Add pokemon to the original list as well if it doesn't exist yet
+                        pokemons = if (currentState.pokemons.any { it.id == pokemon.id }) {
+                            currentState.pokemons
+                        } else {
+                            currentState.pokemons + pokemon
+                        },
+                        filteredPokemons = listOf(pokemon),
+                        isLoading = false
+                    )
+                }
                 Log.d("PokemonListViewModel", "searchPokemons, current pokemons: $pokemon")
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false)
+                _state.update { it.copy(isLoading = false) }
                 Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
             }
         }
@@ -96,10 +101,10 @@ class PokemonListViewModel(private val apiService: PokemonApiService) : ViewMode
         } else {
             _state.value.pokemons.filter { it.name.contains(query, ignoreCase = true) }
         }
-        _state.value = _state.value.copy(filteredPokemons = filteredList)
+        _state.update { it.copy(filteredPokemons = filteredList) }
     }
 
-    suspend fun getPokemonsWithDetails(limit: Int, offset: Int): List<Pokemon> {
+    private suspend fun getPokemonsWithDetails(limit: Int, offset: Int): List<Pokemon> {
         val response = apiService.getPokemonList(limit, offset)
 
         return coroutineScope {
