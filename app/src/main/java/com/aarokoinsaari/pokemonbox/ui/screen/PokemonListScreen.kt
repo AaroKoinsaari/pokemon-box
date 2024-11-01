@@ -41,7 +41,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -197,7 +196,7 @@ fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
             Text(
                 text = pokemon.name.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold, // TODO: Should use just MaterialTheme
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
             // Types
@@ -209,10 +208,10 @@ fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
                         type = type,
                         modifier = Modifier
                             .background(
-                                color = Color.LightGray, // TODO: Use MaterialTheme
+                                color = MaterialTheme.colorScheme.secondary,
                                 shape = RoundedCornerShape(4.dp)
                             )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
             }
@@ -221,6 +220,7 @@ fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
                 Text(
                     text = pokemon.description.replaceFirstChar { it.uppercaseChar() },
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -232,9 +232,9 @@ fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
 fun PokemonTypeLabel(type: String, modifier: Modifier = Modifier) {
     Text(
         text = type.replaceFirstChar { it.uppercase() },
-        color = Color.Gray, // TODO: Use MaterialTheme when adjusted
-        style = MaterialTheme.typography.bodySmall,
-        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSecondary,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
         modifier = modifier
     )
 }
@@ -242,18 +242,27 @@ fun PokemonTypeLabel(type: String, modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun PokemonListScreen_Preview() {
-    val pokemon = Pokemon(
-        id = 1,
-        name = "bulbasaur",
-        types = listOf("Electric", "Water"),
-        description = "Can float on water",
-        imageUrl = null
+    val pokemons = listOf(
+        Pokemon(
+            id = 1,
+            name = "bulbasaur",
+            types = listOf("Electric", "Water"),
+            description = "Can float on water",
+            imageUrl = null
+        ),
+        Pokemon(
+            id = 2,
+            name = "pikachu",
+            types = listOf("Electric"),
+            description = "is fast",
+            imageUrl = null
+        )
     )
     PokemonBoxTheme {
         PokemonListScreen(
             stateFlow = MutableStateFlow(
                 PokemonListState(
-                    pokemons = listOf(pokemon)
+                    pokemons = pokemons
                 )
             )
         )
