@@ -20,7 +20,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -34,7 +36,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,13 +63,27 @@ fun PokemonListScreen(
     modifier: Modifier = Modifier,
     onIntent: (PokemonListIntent) -> Unit = { },
 ) {
+    val state = stateFlow.collectAsState()
+    val listState = rememberLazyListState()
+
+    // Launch paging effect when reaching the end of the list
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .collect { lastVisibleIndex ->
+                if (lastVisibleIndex != null &&
+                    lastVisibleIndex >= state.value.pokemons.size - 1 &&
+                    !state.value.isLoading
+                ) {
+                    onIntent(PokemonListIntent.LoadNextPage)
+                }
+            }
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = modifier
     ) {
-        val state = stateFlow.collectAsState()
-
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -111,6 +129,7 @@ fun PokemonListScreen(
                     state.value.filteredPokemons
                 },
                 isLoading = state.value.isLoading,
+                listState = listState,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -121,10 +140,14 @@ fun PokemonListScreen(
 fun PokemonList(
     pokemons: List<Pokemon>,
     isLoading: Boolean,
+    listState: LazyListState,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier) {
-        LazyColumn(Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize()
+        ) {
             items(pokemons) { pokemon ->
                 PokemonListItem(
                     pokemon = pokemon,
