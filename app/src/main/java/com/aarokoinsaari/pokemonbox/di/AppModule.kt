@@ -9,7 +9,6 @@ import com.aarokoinsaari.pokemonbox.data.local.PokemonDatabase
 import com.aarokoinsaari.pokemonbox.data.remote.PokemonApiService
 import com.aarokoinsaari.pokemonbox.data.repository.PokemonRepository
 import com.aarokoinsaari.pokemonbox.viewmodel.PokemonListViewModel
-import me.sargunvohra.lib.pokekotlin.client.PokeApiClient
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -34,8 +33,6 @@ val appModule = module {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
-
-    single { PokeApiClient() }
 
     single<PokemonApiService> { get<Retrofit>().create(PokemonApiService::class.java) }
 

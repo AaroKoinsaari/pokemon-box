@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.ksp)
     id("io.gitlab.arturbosch.detekt").version("1.23.6")
+    id("com.github.jk1.dependency-license-report") version "2.9"
 }
 
 android {
@@ -52,22 +53,20 @@ dependencies {
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.koin.compose)
     implementation(libs.koin.android)
-    implementation(libs.pokekotlin)
     implementation(libs.retrofit)
+    implementation(libs.converter.gson)
     implementation(libs.okhttp)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-    implementation(libs.androidx.paging.runtime.ktx)
-    implementation(libs.androidx.paging.compose)
+    implementation(libs.gson)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
@@ -76,6 +75,11 @@ dependencies {
 detekt {
     toolVersion = "1.23.6"
     buildUponDefaultConfig = true
+}
+
+licenseReport {
+    outputDir = "$projectDir"
+    renderers = arrayOf(com.github.jk1.license.render.TextReportRenderer("LICENSES.md"))
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
