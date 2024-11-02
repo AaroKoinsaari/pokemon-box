@@ -50,8 +50,14 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
             try {
                 val pokemons = repository.getPokemons(currentOffset)
                 _state.update { currentState ->
-                    val updatedList = if (reset) pokemons else currentState.pokemons + pokemons
-//                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons: $updatedList")
+                    // filter out possible duplicate pokemons
+                    val updatedList = if (reset) {
+                        pokemons
+                    } else {
+                        val existingOnes = currentState.pokemons.map { it.id }.toSet()
+                        currentState.pokemons + pokemons.filter { it.id !in existingOnes }
+                    }
+//                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons size: ${updatedList.size}")
                     currentState.copy(pokemons = updatedList, isLoading = false)
                 }
             } catch (e: Exception) {
