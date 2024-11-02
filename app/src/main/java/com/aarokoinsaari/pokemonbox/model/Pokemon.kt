@@ -4,8 +4,8 @@
 
 package com.aarokoinsaari.pokemonbox.model
 
-import com.aarokoinsaari.pokemonbox.network.PokemonDetailResponse
-import com.aarokoinsaari.pokemonbox.network.PokemonSpeciesResponse
+import com.aarokoinsaari.pokemonbox.data.remote.PokemonDetailResponse
+import com.aarokoinsaari.pokemonbox.data.remote.PokemonSpeciesResponse
 
 data class Pokemon(
     val id: Int,

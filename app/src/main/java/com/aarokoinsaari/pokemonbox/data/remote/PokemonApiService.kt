@@ -2,7 +2,7 @@
  * Copyright (c) 2024 Aaro Koinsaari. All rights reserved.
  */
 
-package com.aarokoinsaari.pokemonbox.network
+package com.aarokoinsaari.pokemonbox.data.remote
 
 import retrofit2.http.GET
 import retrofit2.http.Path
