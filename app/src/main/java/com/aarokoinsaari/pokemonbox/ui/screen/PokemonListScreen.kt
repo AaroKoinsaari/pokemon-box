@@ -91,11 +91,15 @@ fun PokemonListScreen(
             modifier = Modifier
                 .fillMaxHeight()
                 .statusBarsPadding()
+                .padding(16.dp)
         ) {
             SearchTextField(
                 query = state.value.query,
                 onQueryChange = { onIntent(PokemonListIntent.UpdateQuery(it)) },
-                onSearch = { onIntent(PokemonListIntent.Search(state.value.query)) }
+                onSearch = { onIntent(PokemonListIntent.Search(state.value.query)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 60.dp)
             )
             PokemonList(
                 // Choose between displaying all pokemons or the filtered one
@@ -116,7 +120,8 @@ fun PokemonListScreen(
 fun SearchTextField(
     query: String,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -168,10 +173,7 @@ fun SearchTextField(
                 focusManager.clearFocus()
             }
         ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .heightIn(max = 60.dp)
+        modifier = modifier
     )
 }
 
@@ -213,7 +215,10 @@ fun PokemonList(
 
 @Composable
 fun PokemonListItem(pokemon: Pokemon, modifier: Modifier = Modifier) {
-    Row(modifier = modifier) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier
+    ) {
         // Pokemon image
         AsyncImage(
             model = pokemon.imageUrl,
