@@ -4,10 +4,14 @@
 
 package com.aarokoinsaari.pokemonbox.di
 
-import com.aarokoinsaari.pokemonbox.network.PokemonApiService
+import androidx.room.Room
+import com.aarokoinsaari.pokemonbox.data.local.PokemonDatabase
+import com.aarokoinsaari.pokemonbox.data.remote.PokemonApiService
+import com.aarokoinsaari.pokemonbox.data.repository.PokemonRepository
 import com.aarokoinsaari.pokemonbox.viewmodel.PokemonListViewModel
 import me.sargunvohra.lib.pokekotlin.client.PokeApiClient
 import okhttp3.OkHttpClient
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 import retrofit2.Retrofit
@@ -34,6 +38,18 @@ val appModule = module {
     single { PokeApiClient() }
 
     single<PokemonApiService> { get<Retrofit>().create(PokemonApiService::class.java) }
+
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            PokemonDatabase::class.java,
+            "pokemon_database"
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    single { get<PokemonDatabase>().pokemonDao() }
+
+    single { PokemonRepository(get(), get()) }
 
     viewModel { PokemonListViewModel(get()) }
 }
