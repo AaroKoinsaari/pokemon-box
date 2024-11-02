@@ -17,6 +17,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 
+@Suppress("TooGenericExceptionCaught")
 class PokemonRepository(
     private val pokemonDao: PokemonDao,
     private val apiService: PokemonApiService

@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@Suppress("TooGenericExceptionCaught")
 class PokemonListViewModel(private val repository: PokemonRepository) : ViewModel() {
     private val _state = MutableStateFlow(PokemonListState())
     val state: StateFlow<PokemonListState> = _state
@@ -44,7 +45,6 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
         }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private fun loadPokemons(reset: Boolean = false) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -68,7 +68,6 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
         }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private fun searchPokemonByName(query: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
