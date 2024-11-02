@@ -4,6 +4,7 @@
 
 package com.aarokoinsaari.pokemonbox.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aarokoinsaari.pokemonbox.data.repository.PokemonRepository
@@ -25,7 +26,7 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
     }
 
     fun handleIntent(intent: PokemonListIntent) {
-//        Log.d("PokemonListViewModel", "handleIntent: $intent")
+        Log.d("PokemonListViewModel", "handleIntent: $intent")
         when (intent) {
             is PokemonListIntent.LoadInitial -> {
                 currentOffset = 0
@@ -57,12 +58,12 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
                         val existingOnes = currentState.pokemons.map { it.id }.toSet()
                         currentState.pokemons + pokemons.filter { it.id !in existingOnes }
                     }
-//                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons size: ${updatedList.size}")
+                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons size: ${updatedList.size}")
                     currentState.copy(pokemons = updatedList, isLoading = false)
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
-//                Log.d("PokemonListViewModel", "Error loading pokemons: ${e.message}")
+                Log.d("PokemonListViewModel", "Error loading pokemons: ${e.message}")
             }
         }
     }
@@ -85,7 +86,7 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
                     )
                 }
             } catch (e: Exception) {
-//                Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
+                Log.d("PokemonListViewModel", "Error searching pokemons: ${e.message}")
                 _state.update { it.copy(isLoading = false) }
             }
         }

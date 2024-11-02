@@ -4,18 +4,9 @@
 
 package com.aarokoinsaari.pokemonbox
 
+import com.aarokoinsaari.pokemonbox.data.repository.PokemonRepository
 import com.aarokoinsaari.pokemonbox.intent.PokemonListIntent
-import com.aarokoinsaari.pokemonbox.model.toPokemon
-import com.aarokoinsaari.pokemonbox.network.FlavorTextEntry
-import com.aarokoinsaari.pokemonbox.network.Language
-import com.aarokoinsaari.pokemonbox.network.PokemonApiService
-import com.aarokoinsaari.pokemonbox.network.PokemonBasicInfo
-import com.aarokoinsaari.pokemonbox.network.PokemonDetailResponse
-import com.aarokoinsaari.pokemonbox.network.PokemonListResponse
-import com.aarokoinsaari.pokemonbox.network.PokemonSpeciesResponse
-import com.aarokoinsaari.pokemonbox.network.Sprites
-import com.aarokoinsaari.pokemonbox.network.Type
-import com.aarokoinsaari.pokemonbox.network.TypeSlot
+import com.aarokoinsaari.pokemonbox.model.Pokemon
 import com.aarokoinsaari.pokemonbox.viewmodel.PokemonListViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,6 +28,12 @@ import org.mockito.junit.MockitoJUnitRunner
 
 @ExperimentalCoroutinesApi
 @RunWith(MockitoJUnitRunner::class)
+@Suppress("MaxLineLength")
+/**
+ * NOTE: When running these tests, comment all Logs out in the ViewModel or the tests will fail because
+ * Mocking Log calls doesn’t work in the JVM test environment. Should probably prefer Mockk but for
+ * now the workaround is to just comment them out when testing.
+ */
 class PokemonListViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -45,14 +42,14 @@ class PokemonListViewModelTest {
     private val ivusaurDescription = "When the bulb on its back grows large, it appears to lose the ability to stand on its hind legs."
     private val charmanderDescription = "Obviously prefers hot places. When it rains, steam is said to spout from the tip of its tail."
 
-    private lateinit var apiService: PokemonApiService
+    private lateinit var repository: PokemonRepository
     private lateinit var viewModel: PokemonListViewModel
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        apiService = mock()
-        viewModel = PokemonListViewModel(apiService)
+        repository = mock()
+        viewModel = PokemonListViewModel(repository)
     }
 
     @After
@@ -62,79 +59,42 @@ class PokemonListViewModelTest {
 
     @Test
     fun `load initial pokemons successfully`() = testScope.runTest {
-        val mockBasicInfo = PokemonBasicInfo(name = "Bulbasaur", url = "asd")
-        val mockPokemonListResponse = PokemonListResponse(results = listOf(mockBasicInfo))
-        val mockDetailResponse = PokemonDetailResponse(
+        val mockPokemon = Pokemon(
             id = 1,
             name = "Bulbasaur",
-            sprites = Sprites(frontDefault = "dsa"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "grass", url = "dsadsa")))
-        )
-        val mockSpeciesResponse = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(
-                    flavorText = bulbasaurDescription,
-                    language = Language(name = "en")
-                )
-            )
+            imageUrl = "url1",
+            types = listOf("grass"),
+            description = bulbasaurDescription
         )
 
-        `when`(apiService.getPokemonList(anyInt(), anyInt())).thenReturn(mockPokemonListResponse)
-        `when`(apiService.getPokemonDetail("Bulbasaur")).thenReturn(mockDetailResponse)
-        `when`(apiService.getPokemonSpecies(1)).thenReturn(mockSpeciesResponse)
-
+        `when`(repository.getPokemons(anyInt())).thenReturn(listOf(mockPokemon))
         viewModel.handleIntent(PokemonListIntent.LoadInitial)
-        testDispatcher.scheduler.advanceUntilIdle() // Let coroutines run
+        testDispatcher.scheduler.advanceUntilIdle()
 
         val state = viewModel.state.first()
-        val mockPokemon = mockDetailResponse.toPokemon(mockSpeciesResponse)
-
         Assert.assertFalse(state.isLoading)
         Assert.assertEquals(listOf(mockPokemon), state.pokemons)
     }
 
     @Test
     fun `load next page successfully`() = testScope.runTest {
-        val mockBasicInfoPage1 = PokemonBasicInfo(name = "Bulbasaur", url = "url")
-        val mockPokemonListResponsePage1 = PokemonListResponse(results = listOf(mockBasicInfoPage1))
-        val mockBasicInfoPage2 = PokemonBasicInfo(name = "Ivysaur", url = "url2")
-        val mockPokemonListResponsePage2 = PokemonListResponse(results = listOf(mockBasicInfoPage2))
-        val mockDetailResponse1 = PokemonDetailResponse(
+        val mockPokemonPage1 = Pokemon(
             id = 1,
             name = "Bulbasaur",
-            sprites = Sprites(frontDefault = "url1"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "grass", url = "url11")))
+            imageUrl = "url1",
+            types = listOf("grass"),
+            description = bulbasaurDescription
         )
-        val mockSpeciesResponse1 = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(
-                    flavorText = bulbasaurDescription,
-                    language = Language(name = "en")
-                )
-            )
-        )
-        val mockDetailResponse2 = PokemonDetailResponse(
+        val mockPokemonPage2 = Pokemon(
             id = 2,
             name = "Ivysaur",
-            sprites = Sprites(frontDefault = "url2"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "grass", url = "url22")))
-        )
-        val mockSpeciesResponse2 = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(
-                    flavorText = ivusaurDescription,
-                    language = Language(name = "en")
-                )
-            )
+            imageUrl = "url2",
+            types = listOf("grass"),
+            description = ivusaurDescription
         )
 
-        `when`(apiService.getPokemonList(20, 0)).thenReturn(mockPokemonListResponsePage1)
-        `when`(apiService.getPokemonDetail("Bulbasaur")).thenReturn(mockDetailResponse1)
-        `when`(apiService.getPokemonSpecies(1)).thenReturn(mockSpeciesResponse1)
-        `when`(apiService.getPokemonList(20, 20)).thenReturn(mockPokemonListResponsePage2)
-        `when`(apiService.getPokemonDetail("Ivysaur")).thenReturn(mockDetailResponse2)
-        `when`(apiService.getPokemonSpecies(2)).thenReturn(mockSpeciesResponse2)
-
+        `when`(repository.getPokemons(0)).thenReturn(listOf(mockPokemonPage1))
+        `when`(repository.getPokemons(20)).thenReturn(listOf(mockPokemonPage2))
 
         viewModel.handleIntent(PokemonListIntent.LoadInitial)
         testDispatcher.scheduler.advanceUntilIdle()
@@ -142,108 +102,63 @@ class PokemonListViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = viewModel.state.first()
-        val mockPokemon1 = mockDetailResponse1.toPokemon(mockSpeciesResponse1)
-        val mockPokemon2 = mockDetailResponse2.toPokemon(mockSpeciesResponse2)
-
         Assert.assertFalse(state.isLoading)
-        Assert.assertEquals(listOf(mockPokemon1, mockPokemon2), state.pokemons)
+        Assert.assertEquals(listOf(mockPokemonPage1, mockPokemonPage2), state.pokemons)
     }
 
     @Test
-    fun `search pokemon successfully updates filtered list`() = testScope.runTest {
-        val mockDetailResponse = PokemonDetailResponse(
+    fun `search pokemon by name updates filtered list`() = testScope.runTest {
+        val mockPokemon = Pokemon(
             id = 1,
             name = "Bulbasaur",
-            sprites = Sprites(frontDefault = "url"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "grass", url = "typeUrl")))
+            imageUrl = "url",
+            types = listOf("grass"),
+            description = bulbasaurDescription
         )
-        val mockSpeciesResponse = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(
-                    flavorText = bulbasaurDescription,
-                    language = Language(name = "en")
-                )
-            )
-        )
-        `when`(apiService.getPokemonDetail("Bulbasaur")).thenReturn(mockDetailResponse)
-        `when`(apiService.getPokemonSpecies(1)).thenReturn(mockSpeciesResponse)
+
+        `when`(repository.searchPokemonByName("Bulbasaur")).thenReturn(mockPokemon)
 
         viewModel.handleIntent(PokemonListIntent.Search("Bulbasaur"))
         testDispatcher.scheduler.advanceUntilIdle()
 
         val state = viewModel.state.first()
-        val mockPokemon = mockDetailResponse.toPokemon(mockSpeciesResponse)
-
         Assert.assertFalse(state.isLoading)
         Assert.assertEquals(listOf(mockPokemon), state.filteredPokemons)
     }
 
     @Test
     fun `filter pokemons by query updates filtered list correctly`() = testScope.runTest {
-        val mockBasicInfo1 = PokemonBasicInfo(name = "Bulbasaur", url = "url1")
-        val mockBasicInfo2 = PokemonBasicInfo(name = "Ivysaur", url = "url2")
-        val mockBasicInfo3 = PokemonBasicInfo(name = "Charmander", url = "url3")
-        val mockPokemonListResponse = PokemonListResponse(results = listOf(mockBasicInfo1, mockBasicInfo2, mockBasicInfo3))
-        val mockDetailResponse1 = PokemonDetailResponse(
+        val mockPokemon1 = Pokemon(
             id = 1,
             name = "Bulbasaur",
-            sprites = Sprites(frontDefault = "frontUrl1"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "grass", url = "typeUrl1")))
+            imageUrl = "url1",
+            types = listOf("grass"),
+            description = bulbasaurDescription
         )
-        val mockSpeciesResponse1 = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(flavorText = bulbasaurDescription, language = Language(name = "en"))
-            )
-        )
-
-        val mockDetailResponse2 = PokemonDetailResponse(
+        val mockPokemon2 = Pokemon(
             id = 2,
             name = "Ivysaur",
-            sprites = Sprites(frontDefault = "frontUrl2"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "grass", url = "typeUrl2")))
+            imageUrl = "url2",
+            types = listOf("grass"),
+            description = ivusaurDescription
         )
-        val mockSpeciesResponse2 = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(flavorText = ivusaurDescription, language = Language(name = "en"))
-            )
-        )
-
-        val mockDetailResponse3 = PokemonDetailResponse(
+        val mockPokemon3 = Pokemon(
             id = 3,
             name = "Charmander",
-            sprites = Sprites(frontDefault = "frontUrl3"),
-            types = listOf(TypeSlot(slot = 1, type = Type(name = "fire", url = "typeUrl3")))
-        )
-        val mockSpeciesResponse3 = PokemonSpeciesResponse(
-            flavorTextEntries = listOf(
-                FlavorTextEntry(flavorText = charmanderDescription, language = Language(name = "en"))
-            )
+            imageUrl = "url3",
+            types = listOf("fire"),
+            description = charmanderDescription
         )
 
-        `when`(apiService.getPokemonList(anyInt(), anyInt())).thenReturn(mockPokemonListResponse)
-        `when`(apiService.getPokemonDetail("Bulbasaur")).thenReturn(mockDetailResponse1)
-        `when`(apiService.getPokemonSpecies(1)).thenReturn(mockSpeciesResponse1)
-        `when`(apiService.getPokemonDetail("Ivysaur")).thenReturn(mockDetailResponse2)
-        `when`(apiService.getPokemonSpecies(2)).thenReturn(mockSpeciesResponse2)
-        `when`(apiService.getPokemonDetail("Charmander")).thenReturn(mockDetailResponse3)
-        `when`(apiService.getPokemonSpecies(3)).thenReturn(mockSpeciesResponse3)
+        `when`(repository.getPokemons(anyInt())).thenReturn(listOf(mockPokemon1, mockPokemon2, mockPokemon3))
+
 
         viewModel.handleIntent(PokemonListIntent.LoadInitial)
         testDispatcher.scheduler.advanceUntilIdle()
-
-        val mockPokemon1 = mockDetailResponse1.toPokemon(mockSpeciesResponse1)
-        val mockPokemon2 = mockDetailResponse2.toPokemon(mockSpeciesResponse2)
-        val mockPokemon3 = mockDetailResponse3.toPokemon(mockSpeciesResponse3)
-        val initialState = viewModel.state.first()
-
-        Assert.assertFalse(initialState.isLoading)
-        Assert.assertEquals(listOf(mockPokemon1, mockPokemon2, mockPokemon3), initialState.pokemons)
-
-        viewModel.handleIntent(PokemonListIntent.UpdateQuery("ivy"))
+        viewModel.handleIntent(PokemonListIntent.UpdateQuery("Ivy"))
         testDispatcher.scheduler.advanceUntilIdle()
 
         val filteredState = viewModel.state.first()
-        val expectedFilteredPokemons = listOf(mockPokemon2) // Ivysaur should be first
-        Assert.assertEquals(expectedFilteredPokemons, filteredState.filteredPokemons)
+        Assert.assertEquals(listOf(mockPokemon2), filteredState.filteredPokemons)
     }
 }
