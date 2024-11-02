@@ -47,6 +47,14 @@ val appModule = module {
         ).fallbackToDestructiveMigration().build()
     }
 
+    // For testing
+//    single {
+//        Room.inMemoryDatabaseBuilder(
+//            androidContext(),
+//            PokemonDatabase::class.java
+//        ).build()
+//    }
+
     single { get<PokemonDatabase>().pokemonDao() }
 
     single { PokemonRepository(get(), get()) }
