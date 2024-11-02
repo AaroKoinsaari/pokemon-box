@@ -58,7 +58,7 @@ class PokemonListViewModel(private val repository: PokemonRepository) : ViewMode
                         val existingOnes = currentState.pokemons.map { it.id }.toSet()
                         currentState.pokemons + pokemons.filter { it.id !in existingOnes }
                     }
-                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons size: ${updatedList.size}")
+                    Log.d("PokemonListViewModel", "loadPokemons, current pokemons list size: ${updatedList.size}")
                     currentState.copy(pokemons = updatedList, isLoading = false)
                 }
             } catch (e: Exception) {

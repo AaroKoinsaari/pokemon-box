@@ -23,21 +23,26 @@ class PokemonRepository(
 ) {
     // Fetch paginated pokemons from Room first and if not available fetch rest from API
     suspend fun getPokemons(offset: Int): List<Pokemon> = coroutineScope {
-        val localPokemons = pokemonDao.getPaginatedPokemons(LIMIT, offset)
-        Log.d("PokemonRepository", "getPokemons, local pokemons: ${localPokemons.size}")
-        if (localPokemons.size == LIMIT) {
-            return@coroutineScope localPokemons.map { it.toPokemonModel() }
-        } else { // Calculate missing pokemons from page limit and fetch them from the API
-            val missingCount = LIMIT - localPokemons.size
-            Log.d("PokemonRepository", "getPokemons, missing count: $missingCount")
-            val apiData = fetchPokemonsFromApi(missingCount, offset + localPokemons.size)
-            Log.d("PokemonRepository", "getPokemons, fetched pokemons from Api: $apiData.size")
-            val combinedData = localPokemons.map { it.toPokemonModel() } + apiData
+        try {
+            val localPokemons = pokemonDao.getPaginatedPokemons(LIMIT, offset)
+            Log.d("PokemonRepository", "getPokemons, local pokemons: ${localPokemons.size}")
+            if (localPokemons.size == LIMIT) {
+                return@coroutineScope localPokemons.map { it.toPokemonModel() }
+            } else { // Calculate missing pokemons from page limit and fetch them from the API
+                val missingCount = LIMIT - localPokemons.size
+                val apiData = fetchPokemonsFromApi(missingCount, offset + localPokemons.size)
+                val combinedData = localPokemons.map { it.toPokemonModel() } + apiData
+                Log.d("PokemonRepository", "getPokemons, missing count: $missingCount")
+                Log.d("PokemonRepository", "getPokemons, fetched pokemons from Api: ${apiData.size}")
 
-            if (pokemonDao.getPokemonCount() < MAX_POKEMONS) {
-                insertPokemonsToDatabase(apiData)
+                if (pokemonDao.getPokemonCount() < MAX_POKEMONS) {
+                    insertPokemonsToDatabase(apiData)
+                }
+                combinedData.take(LIMIT)
             }
-            combinedData.take(LIMIT)
+        } catch (e: Exception) {
+            Log.d("PokemonRepository", "Error fetching pokemons: ${e.message}")
+            emptyList()
         }
     }
 
@@ -60,11 +65,16 @@ class PokemonRepository(
         withContext(Dispatchers.IO) {
             apiService.getPokemonList(pokemonsToFetch, offset).results.map { apiPokemon ->
                 async {
-                    val detailResponse = apiService.getPokemonDetail(apiPokemon.name)
-                    val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
-                    detailResponse.toPokemon(speciesResponse)
+                    try {
+                        val detailResponse = apiService.getPokemonDetail(apiPokemon.name)
+                        val speciesResponse = apiService.getPokemonSpecies(detailResponse.id)
+                        detailResponse.toPokemon(speciesResponse)
+                    } catch (e: Exception) {
+                        Log.d("PokemonRepository", "Error fetching pokemon: ${e.message}")
+                        null
+                    }
                 }
-            }.awaitAll()
+            }.awaitAll().filterNotNull()
         }
 
     private suspend fun insertPokemonsToDatabase(pokemons: List<Pokemon>) {
